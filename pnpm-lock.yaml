@@ -18,7 +18,7 @@ importers:
         specifier: ^5.4.5
         version: 5.4.5
 
-  apps/cart:
+  examples/cart:
     dependencies:
       navigation:
         specifier: workspace:^0.0.0
@@ -52,7 +52,7 @@ importers:
         specifier: ^5.4.5
         version: 5.4.5
 
-  apps/host:
+  examples/host:
     dependencies:
       navigation:
         specifier: workspace:^0.0.0
@@ -86,7 +86,7 @@ importers:
         specifier: ^5.4.5
         version: 5.4.5
 
-  apps/remote:
+  examples/remote:
     dependencies:
       navigation:
         specifier: workspace:^0.0.0
@@ -887,9 +887,6 @@ packages:
   flat-cache@3.2.0:
     resolution: {integrity: sha512-CYcENa+FtcUKLmhhqyctpclsq7QF38pKjZHsGNiSQF5r4FtoKDWabFDl3hzaEQMvT1LHEysw5twgLvpYYb4vbw==}
     engines: {node: ^10.12.0 || >=12.0.0}
-
-  flatted@3.2.7:
-    resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
 
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
@@ -2706,8 +2703,6 @@ snapshots:
       keyv: 4.5.4
       rimraf: 3.0.2
 
-  flatted@3.2.7: {}
-
   flatted@3.3.1: {}
 
   follow-redirects@1.15.6: {}
@@ -3096,7 +3091,7 @@ snapshots:
     dependencies:
       date-format: 4.0.14
       debug: 4.3.4
-      flatted: 3.2.7
+      flatted: 3.3.1
       rfdc: 1.4.1
       streamroller: 3.1.5
     transitivePeerDependencies:

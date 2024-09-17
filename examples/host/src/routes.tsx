@@ -4,8 +4,8 @@ import React from "react";
 import { Home } from "./pages/home";
 import { loadRemoteApp } from "navigation/router";
 
-const RemoteApp = loadRemoteApp({ RemoteApp: React.lazy(() => import('remote/app')), basename: '/remote' });
-const CartApp = loadRemoteApp({ RemoteApp: React.lazy(() => import('cart/app')), basename: '/cart' });
+const RemoteApp = loadRemoteApp({ moduleLoader: import('remote/app'), basename: '/remote' });
+const CartApp = loadRemoteApp({ moduleLoader: import('cart/app'), basename: '/cart' });
 
 export const router = createBrowserRouter([
   {

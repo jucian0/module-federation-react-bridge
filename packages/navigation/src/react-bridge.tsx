@@ -1,5 +1,6 @@
 import React from "react";
-import { useLocation, useNavigate, Link, type LinkProps, type RouteObject, createBrowserRouter, RouterProvider } from "react-router-dom";
+import ReactDOM from "react-dom/client";
+import { useLocation, useNavigate, type RouteObject, createBrowserRouter, RouterProvider } from "react-router-dom";
 
 declare global {
   interface Window { remotes: Record<string, string> }
@@ -16,11 +17,11 @@ export type NavigationDetails = {
 export type NavigationEvent = CustomEvent<NavigationDetails>;
 
 type LoaderArgs = {
-  RemoteApp: React.LazyExoticComponent<React.ComponentType<any>>;
+  moduleLoader: Promise<{ default: (mountPoint: HTMLElement) => () => void }>;
   basename: string;
 }
 
-export function loadRemoteApp<T = unknown>(args: LoaderArgs) {
+export function loadRemoteApp(args: LoaderArgs) {
   /**
    * Store in memory the basename of the remote app
    */
@@ -29,16 +30,38 @@ export function loadRemoteApp<T = unknown>(args: LoaderArgs) {
   }
   window.remotes[args.basename] = args.basename;
 
-  return (props: T = {} as T) => {
+  return () => {
+    const mountPoint = React.useRef<HTMLDivElement>(null);
     const location = useLocation();
     const navigate = useNavigate();
-    const { RemoteApp, basename } = args;
+    const { moduleLoader, basename } = args;
+
+
+    const isFirstRunRef = React.useRef(true);
+    const unmountRef = React.useRef(() => { });
+
+    React.useEffect(() => {
+      async function loader() {
+        if (mountPoint.current) {
+          if (!isFirstRunRef.current) {
+            return;
+          }
+          isFirstRunRef.current = false;
+          const { default: remoteInit } = await moduleLoader
+          unmountRef.current = remoteInit(mountPoint.current)
+        }
+      }
+      loader();
+    }, [moduleLoader]);
+
+    React.useEffect(() => unmountRef.current, []);
+
 
     /**
      * Dispatch navigation events from the host app to the remote app
      */
     React.useEffect(() => {
-      if (location.pathname.startsWith(basename)) {
+      if (location.pathname.startsWith(basename) && mountPoint.current) {
         window.dispatchEvent(
           new CustomEvent<NavigationDetails>('[Navigation] - navigated', {
             detail: {
@@ -49,7 +72,7 @@ export function loadRemoteApp<T = unknown>(args: LoaderArgs) {
           })
         );
       }
-    }, [location, basename]);
+    }, [location, basename]); // Removed unnecessary dependencies
 
     /**
      * Listen to navigation events from the remote app
@@ -70,9 +93,7 @@ export function loadRemoteApp<T = unknown>(args: LoaderArgs) {
     }, [basename, navigate]);
 
     return (
-      <React.Suspense fallback={<div>Loading...</div>}>
-        <RemoteApp {...props} />
-      </React.Suspense>
+      <div ref={mountPoint} id={basename} />
     )
   }
 }
@@ -92,15 +113,15 @@ export function NavigationManager(props: React.PropsWithChildren<RemoteAppProps>
   React.useEffect(() => {
     function eventListener(event: NavigationEvent) {
       const eventPathname = event.detail.pathname
-      if (pathname !== eventPathname) {
-        navigate(event.detail.pathname);
+      if (pathname !== eventPathname && event.detail.basename === basename) {
+        navigate(eventPathname);
       }
     }
     window.addEventListener('[Navigation] - navigated', eventListener as EventListener);
     return () => {
       window.removeEventListener('[Navigation] - navigated', eventListener as EventListener);
     };
-  }, [pathname, navigate]);
+  }, [pathname, basename, navigate]);
 
   /**
    * Dispatch navigation events from the remote app to the host app just in case the route belongs to the host app or other remotes
@@ -124,38 +145,25 @@ export function NavigationManager(props: React.PropsWithChildren<RemoteAppProps>
   )
 }
 
-
-export function LinkCrossApp(props: LinkProps) {
-  const navigate = useNavigate();
-
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    navigate(props.to);
-  }
-  return <Link {...props} onClick={handleClick} />
-}
-
-
-
-
-
 export function createRemoteApp(props: {
   routes: RouteObject[];
   basename: string;
   RootComponent: React.ComponentType<React.PropsWithChildren<{}>>;
 }) {
 
-  const router = createBrowserRouter([
-    {
-      path: "",
-      element: <NavigationManager basename={props.basename}><props.RootComponent /></NavigationManager>,
-      children: props.routes,
-    }
-  ], {
-    basename: props.basename,
-  })
 
-  return () => {
-    return <RouterProvider router={router} />
+  return (mountPoint: HTMLElement) => {
+    const router = createBrowserRouter([
+      {
+        path: "/",
+        element: <NavigationManager basename={props.basename}><props.RootComponent /></NavigationManager>,
+        children: props.routes,
+      }
+    ], {
+      basename: props.basename,
+    })
+    const root = ReactDOM.createRoot(mountPoint);
+    root.render(<RouterProvider router={router} />);
+    return () => root.unmount();
   }
 }

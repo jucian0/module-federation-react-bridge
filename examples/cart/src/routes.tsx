@@ -4,7 +4,7 @@ import { Layout } from "./layout";
 import { Home } from "./pages/home";
 import { createRemoteApp } from "navigation/router";
 
-export const CartApp = createRemoteApp({
+export const applicationInit = createRemoteApp({
 	routes: [
 		{
 			path: "",

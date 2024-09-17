@@ -18,7 +18,7 @@ export default defineConfig({
 				new ModuleFederationPlugin({
 					name: "remote",
 					exposes: {
-						"./app": "./src/app.tsx",
+						"./app": "./src/bootstrap.tsx",
 					},
 					shared: ["react", "react-dom"],
 				}),
