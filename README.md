@@ -24,6 +24,7 @@ const applicationInit = createRemoteApp({
 });
 
 // index.tsx
+// This file is used to initialize the remote application, it is the entry point for application.
 import("./bootstrap").then(module => {
   const applicationInit = module.default;
 
@@ -34,6 +35,11 @@ import("./bootstrap").then(module => {
   }
 });
 
+// bootstrap.tsx
+// This file is used to initialize the remote application, it is the entry point for module federation.
+import { applicationInit } from "./routes";
+
+export default applicationInit;
 ```
  - `routes`: An array of routes that the remote application will navigate to.(Do not add layout routes here, it will be added in the RootComponent property).
  - `basename`: The base URL for the remote application.
