@@ -1,4 +1,4 @@
-# Module Federation Navigation Bridge
+# React Router DOM Bridge
 
 This package provides a bridge between React Router and a host application. It allows for navigation between different applications and between different routes within an application.
 
@@ -14,7 +14,7 @@ This package provides a bridge between React Router and a host application. It a
 // routes.tsx
 import { createRemoteApp } from 'navigation/router';
 
-const RemoteApp = createRemoteApp({
+const applicationInit = createRemoteApp({
   routes: [
     { path: '/', element: <div>Home</div> },
     { path: '/about', element: <div>About</div> },
@@ -23,11 +23,17 @@ const RemoteApp = createRemoteApp({
   RootComponent: Layout,
 });
 
-// app.tsx
-import { RemoteApp } from 'routes';
-export function App() {
-  return <RemoteApp />
-}
+// index.tsx
+import("./bootstrap").then(module => {
+  const applicationInit = module.default;
+
+  const container = document.getElementById("root");
+
+  if (container) {
+    applicationInit(container)
+  }
+});
+
 ```
  - `routes`: An array of routes that the remote application will navigate to.(Do not add layout routes here, it will be added in the RootComponent property).
  - `basename`: The base URL for the remote application.
@@ -41,7 +47,7 @@ In the host application create a file that will contain the routes and the remot
 // routes.tsx
 import { loadRemoteApp } from 'navigation/router';
 
-const RemoteApp = loadRemoteApp({ RemoteApp: React.lazy(() => import('remote/app')), basename: '/remote' });
+const RemoteApp = loadRemoteApp({ moduleLoader: import('remote/app'), basename: '/remote' });
 
 const routes = createBrowserRouter([
   {
@@ -55,9 +61,8 @@ const routes = createBrowserRouter([
 ]);
 ```
 
- - `RemoteApp`: The remote application to be loaded.
+ - `moduleLoader`: A function that will load the remote application.
  - `basename`: The base URL for the remote application.
-
 
 
  ## Navigating
