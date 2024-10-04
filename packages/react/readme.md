@@ -12,7 +12,7 @@ This package provides a bridge between React Router and a host application. It a
 
 ```tsx
 // routes.tsx
-import { createRemoteApp } from 'navigation/router';
+import { createRemoteApp } from '@module-federation-bridge/react';
 
 const applicationInit = createRemoteApp({
   routes: [
@@ -51,7 +51,7 @@ In the host application create a file that will contain the routes and the remot
 
 ```tsx
 // routes.tsx
-import { loadRemoteApp } from 'navigation/router';
+import { loadRemoteApp } from '@module-federation-bridge/react';
 
 const RemoteApp = loadRemoteApp({ moduleLoader: import('remote/app'), basename: '/remote' });
 

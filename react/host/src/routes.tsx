@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./layout";
 import React from "react";
 import { Home } from "./pages/home";
-import { loadRemoteApp } from "navigation/router";
+import { loadRemoteApp } from "@module-federation-bridge/react";
 
 const RemoteApp = loadRemoteApp({ moduleLoader: import('remote/app'), basename: '/remote' });
 const CartApp = loadRemoteApp({ moduleLoader: import('cart/app'), basename: '/cart' });

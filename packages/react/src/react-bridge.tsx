@@ -128,12 +128,13 @@ export function NavigationManager(props: React.PropsWithChildren<RemoteAppProps>
    */
   React.useEffect(() => {
     const pathnameWithoutBasename = pathname.split('/')[1];
+    const isRemote = window.remotes[`/${pathnameWithoutBasename}`];
     window.dispatchEvent(
       new CustomEvent(`[${basename}] - navigated`, {
         detail: {
           pathname: pathname,
           basename: basename,
-          operation: window.remotes[`/${pathnameWithoutBasename}`] ? "replace" : "push"
+          operation: isRemote ? "replace" : "push"
         },
       })
     );

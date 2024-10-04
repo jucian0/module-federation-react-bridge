@@ -2,7 +2,7 @@ import { Item } from "./pages/item";
 import { List } from "./pages/list";
 import { Layout } from "./layout";
 import { Home } from "./pages/home";
-import { createRemoteApp } from "navigation/router";
+import { createRemoteApp } from "@module-federation-bridge/react";
 
 export const applicationInit = createRemoteApp({
 	routes: [
