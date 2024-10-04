@@ -10,7 +10,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "6.24.1",
-    "@module-federation-bridge/react": "workspace:^0.0.0"
+    "@module-federation-bridge/react": "workspace:*"
   },
   "devDependencies": {
     "@module-federation/enhanced": "^0.1.10",
