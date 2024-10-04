@@ -2,9 +2,8 @@
   "name": "@module-federation-bridge/react",
   "version": "0.0.0",
   "private": true,
-  "exports": {
-    "./router": "./src/index.ts"
-  },
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "generate:component": "turbo gen react-component"
