@@ -103,3 +103,6 @@ const routes = createBrowserRouter([
 
  <Link to="/host/about">About</Link>
  ```
+
+Copyright © 2023 [jucian0](https://github.com/jucian0).<br />
+This project is [MIT](https://github.com/jucian0/module-federation-bridge/blob/53debd6986650f76561795f2069d6eebc5db6c65/LICENSE) licensed.
