@@ -47,7 +47,7 @@ jobs:
       - name: Turbo Release
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_MFB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm turbo-release -s cart,host,remote
 
