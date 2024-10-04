@@ -1,0 +1,7 @@
+{
+    "$schema": "./node_modules/@turbo-version/version/turbov.schema.json",
+    "tagPrefix": "v",
+    "preset": "angular",
+    "synced": true,
+    "updateInternalDependencies": "patch"
+}

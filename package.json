@@ -4,15 +4,31 @@
 	"scripts": {
 		"build": "turbo build",
 		"dev": "turbo dev",
-		"lint": "npx @biomejs/biome format --write ."
+		"lint": "npx @biomejs/biome format --write .",
+		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
+		"prepare": "husky install",
+		"commit": "git-cz",
+    "clean": "turbo run clean && rm -rf node_modules"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.3",
 		"turbo": "^2.0.6",
-		"typescript": "^5.4.5"
+		"typescript": "^5.4.5",
+		"@turbo-version/version": "0.5.7",
+    "@turbo-version/release": "0.5.7",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "commitizen": "^4.2.4",
+    "husky": "^8.0.0",
+    "cz-conventional-changelog": "^3.3.0"
 	},
-	"packageManager": "pnpm@9.0.6",
 	"engines": {
 		"node": ">=18"
-	}
+	},
+	"config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "packageManager": "pnpm@9.0.6"
 }
