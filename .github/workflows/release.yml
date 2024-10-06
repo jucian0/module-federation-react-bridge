@@ -17,10 +17,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm 7
+      - name: Setup pnpm 9
         uses: pnpm/action-setup@v2
         with:
-          version: 7
+          version: 9
 
       - name: Setup Node.js 16.x
         uses: actions/setup-node@v2
