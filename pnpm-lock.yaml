@@ -76,7 +76,7 @@ importers:
   react/cart:
     dependencies:
       '@module-federation-bridge/react':
-        specifier: workspace:^0.0.0
+        specifier: workspace:*
         version: link:../../packages/react
       react:
         specifier: ^18.2.0
@@ -110,7 +110,7 @@ importers:
   react/host:
     dependencies:
       '@module-federation-bridge/react':
-        specifier: workspace:^0.0.0
+        specifier: workspace:*
         version: link:../../packages/react
       react:
         specifier: ^18.2.0
@@ -144,7 +144,7 @@ importers:
   react/remote:
     dependencies:
       '@module-federation-bridge/react':
-        specifier: workspace:^0.0.0
+        specifier: workspace:*
         version: link:../../packages/react
       react:
         specifier: ^18.2.0
