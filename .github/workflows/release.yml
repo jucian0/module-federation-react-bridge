@@ -45,14 +45,14 @@ jobs:
 
       - name: Turbo Version
         shell: bash
-        run: pnpm i && pnpm turbo-version
+        run: pnpm turbo-version
 
       - name: Turbo Release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm turbo-release
+        run: pnpm -r publish
 
       - name: Push tags, and commits
         shell: bash
