@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 18.x
+          node-version: 16.x
 
       - name: Install Dependencies
         shell: bash
@@ -33,7 +33,10 @@ jobs:
 
       - name: Build
         shell: bash
-        run: pnpm --filter=react...  build
+        run: pnpm build
+
+      - name: Install turbo-version
+        run: pnpm i
 
       ##  We are going to replace it by a specif command to configure git environments
       - name: Temporally git user
@@ -49,7 +52,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm turbo-release -s cart,host,remote
+        run: pnpm turbo-release
 
       - name: Push tags, and commits
         shell: bash
