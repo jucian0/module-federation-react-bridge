@@ -36,7 +36,7 @@ jobs:
         run: pnpm build
 
       - name: Install turbo-version
-        run: pnpm i @turbo-version/release @turbo-version/version -w
+        run: pnpm i
 
       ##  We are going to replace it by a specif command to configure git environments
       - name: Temporally git user
@@ -45,7 +45,7 @@ jobs:
 
       - name: Turbo Version
         shell: bash
-        run: pnpm turbo-version
+        run: pnpm i && pnpm turbo-version
 
       - name: Turbo Release
         shell: bash
