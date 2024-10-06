@@ -49,8 +49,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: cd
-        run: pnpm turbo-release -s cart,host,remote
+        run: cd && pnpm turbo-release -s cart,host,remote
 
       - name: Push tags, and commits
         shell: bash
