@@ -1,5 +1,4 @@
 {
-	"name": "module-federation-bridge",
 	"private": true,
 	"scripts": {
 		"build": "turbo build",
