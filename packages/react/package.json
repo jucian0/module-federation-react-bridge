@@ -1,6 +1,9 @@
 {
   "name": "@module-federation-bridge/react",
   "version": "0.0.0",
+  "repository": {
+    "url": "https://github.com/jucian0/module-federation-react-bridge"
+  },
   "scripts": {
     "build": "tsup src/index.ts",
     "dev": "tsup src/index.ts --watch",
