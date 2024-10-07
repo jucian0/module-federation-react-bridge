@@ -1,7 +1,6 @@
 {
   "name": "@module-federation-bridge/react",
   "version": "0.0.1",
-  "private": true,
   "scripts": {
     "build": "tsup src/index.ts",
     "dev": "tsup src/index.ts --watch",
