@@ -1,9 +1,11 @@
 {
   "name": "@module-federation-bridge/react",
-  "version": "0.0.0",
+  "version": "0.0.1",
+"description": "A Simple bridge to work with module federation",
   "repository": {
     "url": "https://github.com/jucian0/module-federation-react-bridge"
   },
+  "author": "Jucian0 <juciano@outlook.com.br>",
   "scripts": {
     "build": "tsup src/index.ts",
     "dev": "tsup src/index.ts --watch",
