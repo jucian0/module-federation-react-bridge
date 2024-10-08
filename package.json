@@ -1,9 +1,9 @@
 {
-	"name": "module-federation-bridge",
 	"private": true,
+	"name": "module-federation-bridge",
 	"scripts": {
-		"build": "turbo build",
-		"dev": "turbo dev",
+		"build": "turbo run build",
+		"dev": "turbo run dev",
 		"lint": "npx @biomejs/biome format --write .",
 		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
 		"prepare": "husky install",
