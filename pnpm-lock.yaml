@@ -73,7 +73,7 @@ importers:
         specifier: ^5.3.3
         version: 5.4.5
 
-  react/cart:
+  react-examples/cart:
     dependencies:
       '@module-federation-bridge/react':
         specifier: workspace:*
@@ -107,7 +107,7 @@ importers:
         specifier: ^5.4.5
         version: 5.4.5
 
-  react/host:
+  react-examples/host:
     dependencies:
       '@module-federation-bridge/react':
         specifier: workspace:*
@@ -141,7 +141,7 @@ importers:
         specifier: ^5.4.5
         version: 5.4.5
 
-  react/remote:
+  react-examples/remote:
     dependencies:
       '@module-federation-bridge/react':
         specifier: workspace:*
