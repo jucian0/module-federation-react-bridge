@@ -1,1 +1,1 @@
-export * from "./react-bridge";
+export const test = ''
