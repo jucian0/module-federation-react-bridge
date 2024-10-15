@@ -54,7 +54,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm turbo-release -s @createform/docs,@createform/examples
+        run: pnpm turbo-release -s cart,host,remote
 
       - name: Push tags, and commits
         shell: bash
