@@ -1,6 +1,6 @@
 {
   "name": "@module-federation-bridge/react",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "A module federation bridge for React applications.",
   "keywords": [
     "react",
@@ -17,7 +17,6 @@
     "type": "git",
     "url": "https://github.com/jucian0/module-federation-bridge"
   },
- 
   "devDependencies": {
     "tsup": "^6.7.0",
     "@types/react": "18.0.31",
