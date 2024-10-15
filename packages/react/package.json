@@ -1,6 +1,6 @@
 {
   "name": "@module-federation-bridge/react",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A module federation bridge for React applications.",
   "keywords": [
     "react",
@@ -21,13 +21,13 @@
     "react-dom": "18.2.0",
     "react": "^18.2.0",
     "@turbo/gen": "^1.12.4",
-		"@types/node": "^20.11.24",
-		"@types/react": "^18.2.61",
-		"@types/react-dom": "^18.2.19",
-		"react-router-dom": "^6.2.1",
-		"eslint": "^8.57.0",
-		"typescript": "^5.3.3",
-		"tsup": "^6.7.0"
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "react-router-dom": "^6.2.1",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3",
+    "tsup": "^6.7.0"
   },
   "peerDependencies": {
     "react": ">=18.0.0"
@@ -43,18 +43,25 @@
   "scripts": {
     "build": "tsup src/index.ts",
     "dev": "tsup src/index.ts",
-	"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "publishConfig": {
     "access": "public"
   },
-	"tsup": {
-		"dts": true,
-		"splitting": true,
-		"sourcemap": true,
-		"clean": true,
-		"target": "es2019",
-		"format": ["cjs", "esm"],
-		"external": ["react-dom", "react", "react-router-dom"]
-	}
+  "tsup": {
+    "dts": true,
+    "splitting": true,
+    "sourcemap": true,
+    "clean": true,
+    "target": "es2019",
+    "format": [
+      "cjs",
+      "esm"
+    ],
+    "external": [
+      "react-dom",
+      "react",
+      "react-router-dom"
+    ]
+  }
 }
