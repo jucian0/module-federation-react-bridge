@@ -1,6 +1,6 @@
 {
   "name": "@module-federation-bridge/react",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A module federation bridge for React applications.",
   "keywords": [
     "react",
