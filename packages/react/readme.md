@@ -2,6 +2,11 @@
 
 This package provides a bridge between React Router and a host application. It allows for navigation between different applications and between different routes within an application.
 
+## The Problem
+When using React Router in a host application that is composed of multiple applications, it is difficult to navigate between different applications and between different routes within an application when using the `react-router-dom` package without adding it in shared dependencies and marking it as singleton in the module federation configuration. 
+
+Module federation time has an npm package that supposed to solve this problem, but it not work for cross-application navigation, for this reason I decided to create this package, it could be replaced by the official package when it is fixed. If it is the case, just let me know.
+
 ## Usage
  The packages provides two principal exports:
  - `createRemoteApp`: A function that creates a remote application that can be used to navigate to different routes within the host application.
