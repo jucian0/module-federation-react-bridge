@@ -27,6 +27,7 @@ export type NavigationEvent = CustomEvent<NavigationDetails>;
 
 export type RemoteRuntimeArgs = {
   initialPathname?: string;
+  mountPath?: string;
 };
 
 type RemoteAppInit = (
@@ -37,6 +38,7 @@ type RemoteAppInit = (
 type LoaderArgs = {
   moduleLoader: Promise<{ default: RemoteAppInit }>;
   basename: string;
+  mountPath?: string;
 };
 
 function normalizePathname(pathname: string) {
@@ -62,6 +64,46 @@ function stripBasename(pathname: string, basename: string) {
   return normalizedPathname;
 }
 
+function joinPaths(base: string, pathname: string) {
+  const normalizedBase = normalizePathname(base);
+  const normalizedPathname = normalizePathname(pathname);
+
+  if (normalizedPathname === "/") {
+    return normalizedBase;
+  }
+
+  if (normalizedBase === "/") {
+    return normalizedPathname;
+  }
+
+  return `${normalizedBase}${normalizedPathname}`;
+}
+
+function resolveHostNavigationPath(pathname: string, basename: string) {
+  const normalizedPathname = normalizePathname(pathname);
+  const normalizedBasename = normalizePathname(basename);
+
+  if (normalizedPathname === normalizedBasename) {
+    return normalizedPathname;
+  }
+
+  if (normalizedPathname.startsWith(`${normalizedBasename}/`)) {
+    return normalizedPathname;
+  }
+
+  if (normalizedPathname.startsWith("/root/")) {
+    return normalizePathname(normalizedPathname.replace("/root", ""));
+  }
+
+  const firstSegment = normalizedPathname.split("/").filter(Boolean)[0];
+
+  if (firstSegment && window.remotes[`/${firstSegment}`]) {
+    return normalizedPathname;
+  }
+
+  return joinPaths(normalizedBasename, normalizedPathname);
+}
+
 export function loadRemoteApp(args: LoaderArgs) {
   if (!window.remotes) {
     window.remotes = {};
@@ -74,6 +116,7 @@ export function loadRemoteApp(args: LoaderArgs) {
     const location = useLocation();
     const navigate = useNavigate();
     const { moduleLoader, basename } = args;
+    const mountPath = args.mountPath ?? basename;
 
     const isFirstRunRef = React.useRef(true);
     const unmountRef = React.useRef(() => {});
@@ -89,21 +132,22 @@ export function loadRemoteApp(args: LoaderArgs) {
 
           const { default: remoteInit } = await moduleLoader;
           unmountRef.current = remoteInit(mountPoint.current, {
-            initialPathname: stripBasename(location.pathname, basename),
+            initialPathname: stripBasename(location.pathname, mountPath),
+            mountPath,
           });
         }
       }
 
       loader();
-    }, [moduleLoader, location.pathname, basename]);
+    }, [moduleLoader, location.pathname, basename, mountPath]);
 
     React.useEffect(() => unmountRef.current, []);
 
     React.useEffect(() => {
-      const relativePathname = stripBasename(location.pathname, basename);
+      const relativePathname = stripBasename(location.pathname, mountPath);
       const belongsToRemote =
-        location.pathname === basename ||
-        location.pathname.startsWith(`${basename}/`);
+        location.pathname === mountPath ||
+        location.pathname.startsWith(`${mountPath}/`);
 
       if (belongsToRemote && mountPoint.current) {
         window.dispatchEvent(
@@ -116,17 +160,16 @@ export function loadRemoteApp(args: LoaderArgs) {
           }),
         );
       }
-    }, [location.pathname, basename]);
+    }, [location.pathname, basename, mountPath]);
 
     React.useEffect(() => {
       const remoteNavigationEventHandler = (event: NavigationEvent) => {
         if (event.detail.operation === "replace") {
-          navigate(event.detail.pathname);
+          navigate(event.detail.pathname, { replace: true });
+          return;
         }
 
-        if (event.detail.pathname.includes("root")) {
-          navigate(event.detail.pathname.replace("root", ""));
-        }
+        navigate(event.detail.pathname);
       };
 
       window.addEventListener(
@@ -148,12 +191,14 @@ export function loadRemoteApp(args: LoaderArgs) {
 
 type RemoteAppProps = {
   basename: string;
+  mountPath?: string;
 };
 
 export function NavigationManager(
   props: React.PropsWithChildren<RemoteAppProps>,
 ) {
   const { basename } = props;
+  const mountPath = props.mountPath ?? basename;
   const navigate = useNavigate();
   const pathname = useLocation().pathname;
 
@@ -180,19 +225,23 @@ export function NavigationManager(
   }, [pathname, basename, navigate]);
 
   React.useEffect(() => {
-    const pathnameWithoutBasename = pathname.split("/")[1];
-    const isRemote = window.remotes[`/${pathnameWithoutBasename}`];
+    const hostPathname = resolveHostNavigationPath(pathname, mountPath);
+    const firstSegment = hostPathname.split("/").filter(Boolean)[0];
+    const isAnotherRemote =
+      Boolean(firstSegment) &&
+      firstSegment !== mountPath.replace("/", "").split("/").pop() &&
+      Boolean(window.remotes[`/${firstSegment}`]);
 
     window.dispatchEvent(
       new CustomEvent(`[${basename}] - navigated`, {
         detail: {
-          pathname,
+          pathname: hostPathname,
           basename,
-          operation: isRemote ? "replace" : "push",
+          operation: isAnotherRemote ? "replace" : "push",
         },
       }),
     );
-  }, [pathname, basename]);
+  }, [pathname, basename, mountPath]);
 
   return <>{props.children}</>;
 }
@@ -207,7 +256,10 @@ export function createRemoteApp(props: {
       {
         path: "/",
         element: (
-          <NavigationManager basename={props.basename}>
+          <NavigationManager
+            basename={props.basename}
+            mountPath={runtime?.mountPath}
+          >
             <props.RootComponent />
           </NavigationManager>
         ),
