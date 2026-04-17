@@ -1,9 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { useLocation, useNavigate, type RouteObject, createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  type RouteObject,
+  createBrowserRouter,
+  createMemoryRouter,
+  RouterProvider,
+} from "react-router-dom";
 
 declare global {
-  interface Window { remotes: Record<string, string> }
+  interface Window {
+    remotes: Record<string, string>;
+  }
 }
 
 window.remotes = window.remotes || {};
@@ -16,134 +25,168 @@ export type NavigationDetails = {
 
 export type NavigationEvent = CustomEvent<NavigationDetails>;
 
+type RemoteRuntimeArgs = {
+  initialPathname?: string;
+};
+
 type LoaderArgs = {
-  moduleLoader: Promise<{ default: (mountPoint: HTMLElement) => () => void }>;
+  moduleLoader: Promise<{
+    default: (
+      mountPoint: HTMLElement,
+      runtime?: RemoteRuntimeArgs,
+    ) => () => void;
+  }>;
   basename: string;
+};
+
+function normalizePath(pathname: string) {
+  if (!pathname) return "/";
+  return pathname.startsWith("/") ? pathname : `/${pathname}`;
+}
+
+function stripBasename(pathname: string, basename: string) {
+  const normalizedPathname = normalizePath(pathname);
+  const normalizedBasename = normalizePath(basename);
+
+  if (normalizedPathname === normalizedBasename) {
+    return "/";
+  }
+
+  if (normalizedPathname.startsWith(`${normalizedBasename}/`)) {
+    return normalizedPathname.slice(normalizedBasename.length) || "/";
+  }
+
+  return normalizedPathname;
 }
 
 export function loadRemoteApp(args: LoaderArgs) {
-  /**
-   * Store in memory the basename of the remote app
-   */
   if (!window.remotes) {
     window.remotes = {};
   }
+
   window.remotes[args.basename] = args.basename;
 
-  return () => {
+  return function RemoteAppLoader() {
     const mountPoint = React.useRef<HTMLDivElement>(null);
     const location = useLocation();
     const navigate = useNavigate();
     const { moduleLoader, basename } = args;
 
-
     const isFirstRunRef = React.useRef(true);
-    const unmountRef = React.useRef(() => { });
+    const unmountRef = React.useRef(() => {});
 
     React.useEffect(() => {
       async function loader() {
-        if (mountPoint.current) {
-          if (!isFirstRunRef.current) {
-            return;
-          }
-          isFirstRunRef.current = false;
-          const { default: remoteInit } = await moduleLoader
-          unmountRef.current = remoteInit(mountPoint.current)
+        if (!mountPoint.current || !isFirstRunRef.current) {
+          return;
         }
+
+        isFirstRunRef.current = false;
+
+        const { default: remoteInit } = await moduleLoader;
+        unmountRef.current = remoteInit(mountPoint.current, {
+          initialPathname: stripBasename(location.pathname, basename),
+        });
       }
+
       loader();
-    }, [moduleLoader]);
+    }, [moduleLoader, location.pathname, basename]);
 
     React.useEffect(() => unmountRef.current, []);
 
-
-    /**
-     * Dispatch navigation events from the host app to the remote app
-     */
     React.useEffect(() => {
-      if (location.pathname.startsWith(basename) && mountPoint.current) {
+      if (!mountPoint.current) {
+        return;
+      }
+
+      const relativePathname = stripBasename(location.pathname, basename);
+
+      if (relativePathname !== location.pathname || location.pathname === basename) {
         window.dispatchEvent(
-          new CustomEvent<NavigationDetails>('[Navigation] - navigated', {
+          new CustomEvent<NavigationDetails>("[Navigation] - navigated", {
             detail: {
-              pathname: location.pathname.replace(basename, ""),
-              basename: basename,
-              operation: "push"
+              pathname: relativePathname,
+              basename,
+              operation: "push",
             },
-          })
+          }),
         );
       }
-    }, [location, basename]); // Removed unnecessary dependencies
+    }, [location.pathname, basename]);
 
-    /**
-     * Listen to navigation events from the remote app
-     */
     React.useEffect(() => {
       const remoteNavigationEventHandler = (event: NavigationEvent) => {
         if (event.detail.operation === "replace") {
           navigate(event.detail.pathname);
-        };
-        if (event.detail.pathname.includes('root')) {
-          navigate(event.detail.pathname.replace('root', ''));
         }
-      }
-      window.addEventListener(`[${basename}] - navigated`, remoteNavigationEventHandler as EventListener);
+      };
+
+      window.addEventListener(
+        `[${basename}] - navigated`,
+        remoteNavigationEventHandler as EventListener,
+      );
+
       return () => {
-        window.removeEventListener(`[${basename}] - navigated`, remoteNavigationEventHandler as EventListener);
+        window.removeEventListener(
+          `[${basename}] - navigated`,
+          remoteNavigationEventHandler as EventListener,
+        );
       };
     }, [basename, navigate]);
 
-    return (
-      <div ref={mountPoint} id={basename} />
-    )
-  }
+    return <div ref={mountPoint} id={basename} />;
+  };
 }
 
 type RemoteAppProps = {
   basename: string;
-}
+};
 
-export function NavigationManager(props: React.PropsWithChildren<RemoteAppProps>) {
+export function NavigationManager(
+  props: React.PropsWithChildren<RemoteAppProps>,
+) {
   const { basename } = props;
   const navigate = useNavigate();
   const pathname = useLocation().pathname;
 
-  /**
-   * Listen to navigation events from the host app
-   */
   React.useEffect(() => {
     function eventListener(event: NavigationEvent) {
-      const eventPathname = event.detail.pathname
-      if (pathname !== eventPathname && event.detail.basename === basename) {
+      const eventPathname = normalizePath(event.detail.pathname);
+
+      if (event.detail.basename === basename && pathname !== eventPathname) {
         navigate(eventPathname);
       }
     }
-    window.addEventListener('[Navigation] - navigated', eventListener as EventListener);
+
+    window.addEventListener(
+      "[Navigation] - navigated",
+      eventListener as EventListener,
+    );
+
     return () => {
-      window.removeEventListener('[Navigation] - navigated', eventListener as EventListener);
+      window.removeEventListener(
+        "[Navigation] - navigated",
+        eventListener as EventListener,
+      );
     };
   }, [pathname, basename, navigate]);
 
-  /**
-   * Dispatch navigation events from the remote app to the host app just in case the route belongs to the host app or other remotes
-   */
   React.useEffect(() => {
-    const pathnameWithoutBasename = pathname.split('/')[1];
-    const isRemote = window.remotes[`/${pathnameWithoutBasename}`];
+    const firstSegment = pathname.split("/").filter(Boolean)[0];
+    const isAnotherRemote = Boolean(firstSegment && window.remotes[`/${firstSegment}`]);
+
     window.dispatchEvent(
-      new CustomEvent(`[${basename}] - navigated`, {
+      new CustomEvent<NavigationDetails>(`[${basename}] - navigated`, {
         detail: {
-          pathname: pathname,
-          basename: basename,
-          operation: isRemote ? "replace" : "push"
+          pathname,
+          basename,
+          operation: isAnotherRemote ? "replace" : "push",
         },
-      })
+      }),
     );
+  }, [pathname, basename]);
 
-  }, [pathname, basename])
-
-  return (
-    <>{props.children}</>
-  )
+  return <>{props.children}</>;
 }
 
 export function createRemoteApp(props: {
@@ -151,20 +194,30 @@ export function createRemoteApp(props: {
   basename: string;
   RootComponent: React.ComponentType<React.PropsWithChildren<{}>>;
 }) {
-
-
-  return (mountPoint: HTMLElement) => {
-    const router = createBrowserRouter([
+  return (mountPoint: HTMLElement, runtime?: RemoteRuntimeArgs) => {
+    const routes: RouteObject[] = [
       {
         path: "/",
-        element: <NavigationManager basename={props.basename}><props.RootComponent /></NavigationManager>,
+        element: (
+          <NavigationManager basename={props.basename}>
+            <props.RootComponent />
+          </NavigationManager>
+        ),
         children: props.routes,
-      }
-    ], {
-      basename: props.basename,
-    })
+      },
+    ];
+
+    const router = runtime?.initialPathname
+      ? createMemoryRouter(routes, {
+          initialEntries: [normalizePath(runtime.initialPathname)],
+        })
+      : createBrowserRouter(routes, {
+          basename: props.basename,
+        });
+
     const root = ReactDOM.createRoot(mountPoint);
     root.render(<RouterProvider router={router} />);
+
     return () => root.unmount();
-  }
+  };
 }
