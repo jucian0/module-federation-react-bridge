@@ -79,6 +79,30 @@ function joinPaths(base: string, pathname: string) {
   return `${normalizedBase}${normalizedPathname}`;
 }
 
+function resolveBrowserBasename(
+  windowPathname: string,
+  routerPathname: string,
+) {
+  const normalizedWindowPathname = normalizePathname(windowPathname);
+  const normalizedRouterPathname = normalizePathname(routerPathname);
+
+  if (normalizedRouterPathname === "/") {
+    return normalizedWindowPathname === "/" ? "/" : normalizedWindowPathname;
+  }
+
+  if (normalizedWindowPathname === normalizedRouterPathname) {
+    return "/";
+  }
+
+  if (normalizedWindowPathname.endsWith(normalizedRouterPathname)) {
+    return (
+      normalizedWindowPathname.slice(0, -normalizedRouterPathname.length) || "/"
+    );
+  }
+
+  return "/";
+}
+
 function resolveHostNavigationPath(pathname: string, basename: string) {
   const normalizedPathname = normalizePathname(pathname);
   const normalizedBasename = normalizePathname(basename);
@@ -161,6 +185,70 @@ export function loadRemoteApp(args: LoaderArgs) {
         );
       }
     }, [location.pathname, basename, mountPath]);
+
+    React.useEffect(() => {
+      if (!mountPoint.current) {
+        return;
+      }
+
+      const browserBasename = resolveBrowserBasename(
+        window.location.pathname,
+        location.pathname,
+      );
+      const remoteRoot = mountPoint.current;
+
+      const syncAnchorHrefs = () => {
+        const anchors = remoteRoot.querySelectorAll<HTMLAnchorElement>("a[href]");
+
+        anchors.forEach((anchor) => {
+          const href = anchor.getAttribute("href");
+
+          if (
+            !href ||
+            href.startsWith("#") ||
+            href.startsWith("mailto:") ||
+            href.startsWith("tel:")
+          ) {
+            return;
+          }
+
+          const url = new URL(href, window.location.origin);
+
+          if (
+            url.origin !== window.location.origin ||
+            (browserBasename !== "/" &&
+              (url.pathname === browserBasename ||
+                url.pathname.startsWith(`${browserBasename}/`)))
+          ) {
+            return;
+          }
+
+          const publicPathname = joinPaths(
+            browserBasename,
+            resolveHostNavigationPath(url.pathname, mountPath),
+          );
+          const resolvedHref = `${publicPathname}${url.search}${url.hash}`;
+
+          if (href !== resolvedHref) {
+            anchor.setAttribute("href", resolvedHref);
+          }
+        });
+      };
+
+      syncAnchorHrefs();
+
+      const observer = new MutationObserver(syncAnchorHrefs);
+      observer.observe(remoteRoot, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ["href"],
+      });
+
+      return () => {
+        observer.disconnect();
+      };
+    }, [location.pathname, mountPath]);
 
     React.useEffect(() => {
       const remoteNavigationEventHandler = (event: NavigationEvent) => {
