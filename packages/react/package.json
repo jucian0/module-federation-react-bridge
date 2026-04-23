@@ -18,6 +18,7 @@
     "url": "https://github.com/jucian0/module-federation-bridge"
   },
   "devDependencies": {
+    "@rslib/core": "0.21.3",
     "react-dom": "18.2.0",
     "react": "^18.2.0",
     "@turbo/gen": "^1.12.4",
@@ -26,8 +27,7 @@
     "@types/react-dom": "^18.2.19",
     "react-router-dom": "^6.2.1",
     "eslint": "^8.57.0",
-    "typescript": "^5.3.3",
-    "tsup": "^6.7.0"
+    "typescript": "^5.3.3"
   },
   "peerDependencies": {
     "react": ">=18.0.0"
@@ -41,27 +41,11 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "tsup src/index.ts",
-    "dev": "tsup src/index.ts",
+    "build": "rslib build",
+    "dev": "rslib build --watch",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "tsup": {
-    "dts": true,
-    "splitting": true,
-    "sourcemap": true,
-    "clean": true,
-    "target": "es2019",
-    "format": [
-      "cjs",
-      "esm"
-    ],
-    "external": [
-      "react-dom",
-      "react",
-      "react-router-dom"
-    ]
   }
 }
