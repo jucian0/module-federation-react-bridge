@@ -8,6 +8,12 @@ import {
   createMemoryRouter,
   RouterProvider,
 } from "react-router-dom";
+import {
+  normalizePathname,
+  resolveAnchorPublicHref,
+  resolveHostNavigationPath,
+  stripBasename,
+} from "./path-utils";
 
 declare global {
   interface Window {
@@ -40,93 +46,6 @@ type LoaderArgs = {
   basename: string;
   mountPath?: string;
 };
-
-function normalizePathname(pathname: string) {
-  if (!pathname) {
-    return "/";
-  }
-
-  return pathname.startsWith("/") ? pathname : `/${pathname}`;
-}
-
-function stripBasename(pathname: string, basename: string) {
-  const normalizedPathname = normalizePathname(pathname);
-  const normalizedBasename = normalizePathname(basename);
-
-  if (normalizedPathname === normalizedBasename) {
-    return "/";
-  }
-
-  if (normalizedPathname.startsWith(`${normalizedBasename}/`)) {
-    return normalizedPathname.slice(normalizedBasename.length) || "/";
-  }
-
-  return normalizedPathname;
-}
-
-function joinPaths(base: string, pathname: string) {
-  const normalizedBase = normalizePathname(base);
-  const normalizedPathname = normalizePathname(pathname);
-
-  if (normalizedPathname === "/") {
-    return normalizedBase;
-  }
-
-  if (normalizedBase === "/") {
-    return normalizedPathname;
-  }
-
-  return `${normalizedBase}${normalizedPathname}`;
-}
-
-function resolveBrowserBasename(
-  windowPathname: string,
-  routerPathname: string,
-) {
-  const normalizedWindowPathname = normalizePathname(windowPathname);
-  const normalizedRouterPathname = normalizePathname(routerPathname);
-
-  if (normalizedRouterPathname === "/") {
-    return normalizedWindowPathname === "/" ? "/" : normalizedWindowPathname;
-  }
-
-  if (normalizedWindowPathname === normalizedRouterPathname) {
-    return "/";
-  }
-
-  if (normalizedWindowPathname.endsWith(normalizedRouterPathname)) {
-    return (
-      normalizedWindowPathname.slice(0, -normalizedRouterPathname.length) || "/"
-    );
-  }
-
-  return "/";
-}
-
-function resolveHostNavigationPath(pathname: string, basename: string) {
-  const normalizedPathname = normalizePathname(pathname);
-  const normalizedBasename = normalizePathname(basename);
-
-  if (normalizedPathname === normalizedBasename) {
-    return normalizedPathname;
-  }
-
-  if (normalizedPathname.startsWith(`${normalizedBasename}/`)) {
-    return normalizedPathname;
-  }
-
-  if (normalizedPathname.startsWith("/root/")) {
-    return normalizePathname(normalizedPathname.replace("/root", ""));
-  }
-
-  const firstSegment = normalizedPathname.split("/").filter(Boolean)[0];
-
-  if (firstSegment && window.remotes[`/${firstSegment}`]) {
-    return normalizedPathname;
-  }
-
-  return joinPaths(normalizedBasename, normalizedPathname);
-}
 
 export function loadRemoteApp(args: LoaderArgs) {
   if (!window.remotes) {
@@ -165,7 +84,11 @@ export function loadRemoteApp(args: LoaderArgs) {
       loader();
     }, [moduleLoader, location.pathname, basename, mountPath]);
 
-    React.useEffect(() => unmountRef.current, []);
+    React.useEffect(() => {
+      return () => {
+        unmountRef.current();
+      };
+    }, []);
 
     React.useEffect(() => {
       const relativePathname = stripBasename(location.pathname, mountPath);
@@ -191,10 +114,6 @@ export function loadRemoteApp(args: LoaderArgs) {
         return;
       }
 
-      const browserBasename = resolveBrowserBasename(
-        window.location.pathname,
-        location.pathname,
-      );
       const remoteRoot = mountPoint.current;
 
       const syncAnchorHrefs = () => {
@@ -203,33 +122,19 @@ export function loadRemoteApp(args: LoaderArgs) {
         anchors.forEach((anchor) => {
           const href = anchor.getAttribute("href");
 
-          if (
-            !href ||
-            href.startsWith("#") ||
-            href.startsWith("mailto:") ||
-            href.startsWith("tel:")
-          ) {
+          if (!href) {
             return;
           }
 
-          const url = new URL(href, window.location.origin);
+          const resolvedHref = resolveAnchorPublicHref({
+            href,
+            origin: window.location.origin,
+            browserPathname: window.location.pathname,
+            routerPathname: location.pathname,
+            mountPath,
+          });
 
-          if (
-            url.origin !== window.location.origin ||
-            (browserBasename !== "/" &&
-              (url.pathname === browserBasename ||
-                url.pathname.startsWith(`${browserBasename}/`)))
-          ) {
-            return;
-          }
-
-          const publicPathname = joinPaths(
-            browserBasename,
-            resolveHostNavigationPath(url.pathname, mountPath),
-          );
-          const resolvedHref = `${publicPathname}${url.search}${url.hash}`;
-
-          if (href !== resolvedHref) {
+          if (resolvedHref && href !== resolvedHref) {
             anchor.setAttribute("href", resolvedHref);
           }
         });

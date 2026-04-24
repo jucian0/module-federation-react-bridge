@@ -18,6 +18,8 @@
     "url": "https://github.com/jucian0/module-federation-react-bridge"
   },
   "devDependencies": {
+    "@rstest/adapter-rslib": "^0.2.1",
+    "@rstest/core": "^0.7.7",
     "@rslib/core": "0.21.3",
     "react-dom": "18.2.0",
     "react": "^18.2.0",
@@ -26,6 +28,7 @@
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
     "react-router-dom": "^6.2.1",
+    "happy-dom": "^17.6.3",
     "eslint": "^8.57.0",
     "typescript": "^5.3.3"
   },
@@ -43,6 +46,8 @@
   "scripts": {
     "build": "rslib build",
     "dev": "rslib build --watch",
+    "test": "rstest",
+    "test:watch": "rstest -w",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "publishConfig": {
