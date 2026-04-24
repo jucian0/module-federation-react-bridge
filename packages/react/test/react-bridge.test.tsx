@@ -274,6 +274,73 @@ describe("loadRemoteApp", () => {
 
     await unmount(root);
   });
+
+  test("does not concatenate rewritten basenames after in-app navigations", async () => {
+    window.history.replaceState({}, "", "/root/host/remote/apps");
+
+    const mountPointRef: { current: HTMLElement | null } = { current: null };
+    const RemoteApp = loadRemoteApp({
+      basename: "/remote",
+      moduleLoader: Promise.resolve({
+        default: (mountPoint) => {
+          mountPointRef.current = mountPoint;
+          mountPoint.innerHTML = '<a href="/tokens">Tokens</a>';
+          return () => {};
+        },
+      }),
+    });
+
+    const { root } = await render(
+      <MemoryRouter initialEntries={["/remote/apps"]}>
+        <RemoteApp />
+      </MemoryRouter>,
+    );
+
+    await act(async () => {
+      await flushEffects();
+    });
+
+    const anchor = () => mountPointRef.current?.querySelector("a");
+
+    expect(anchor()?.getAttribute("href")).toBe("/root/host/remote/tokens");
+
+    await act(async () => {
+      window.history.replaceState({}, "", "/root/host/remote/tokens");
+      window.dispatchEvent(
+        new CustomEvent<NavigationDetails>("[/remote] - navigated", {
+          detail: {
+            pathname: "/tokens",
+            basename: "/remote",
+            operation: "push",
+          },
+        }),
+      );
+      await flushEffects();
+    });
+
+    expect(anchor()?.getAttribute("href")).toBe("/root/host/remote/tokens");
+
+    await act(async () => {
+      window.history.replaceState({}, "", "/root/host/remote/apps");
+      window.dispatchEvent(
+        new CustomEvent<NavigationDetails>("[/remote] - navigated", {
+          detail: {
+            pathname: "/apps",
+            basename: "/remote",
+            operation: "push",
+          },
+        }),
+      );
+      await flushEffects();
+    });
+
+    expect(anchor()?.getAttribute("href")).toBe("/root/host/remote/tokens");
+    expect(anchor()?.getAttribute("href")).not.toContain(
+      "/root/host/remote/root/host/remote",
+    );
+
+    await unmount(root);
+  });
 });
 
 describe("createRemoteApp", () => {

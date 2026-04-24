@@ -70,6 +70,32 @@ export function resolveBrowserBasename(
   return "/";
 }
 
+function resolvePublicBasename(
+  browserPathname: string,
+  routerPathname: string,
+  mountPath: string,
+  remotes: RemoteRegistry,
+) {
+  const normalizedBrowserPathname = normalizePathname(browserPathname);
+  const currentHostPathname = resolveHostNavigationPath(
+    routerPathname,
+    mountPath,
+    remotes,
+  );
+
+  if (normalizedBrowserPathname === currentHostPathname) {
+    return "/";
+  }
+
+  if (normalizedBrowserPathname.endsWith(currentHostPathname)) {
+    return (
+      normalizedBrowserPathname.slice(0, -currentHostPathname.length) || "/"
+    );
+  }
+
+  return resolveBrowserBasename(browserPathname, routerPathname);
+}
+
 export function resolveHostNavigationPath(
   pathname: string,
   basename: string,
@@ -126,7 +152,13 @@ export function resolveAnchorPublicHref({
   }
 
   const url = new URL(href, origin);
-  const browserBasename = resolveBrowserBasename(browserPathname, routerPathname);
+  const remoteRegistry = remotes ?? getRemotes();
+  const browserBasename = resolvePublicBasename(
+    browserPathname,
+    routerPathname,
+    mountPath,
+    remoteRegistry,
+  );
 
   if (
     url.origin !== origin ||
@@ -139,7 +171,7 @@ export function resolveAnchorPublicHref({
 
   const publicPathname = joinPaths(
     browserBasename,
-    resolveHostNavigationPath(url.pathname, mountPath, remotes),
+    resolveHostNavigationPath(url.pathname, mountPath, remoteRegistry),
   );
 
   return `${publicPathname}${url.search}${url.hash}`;

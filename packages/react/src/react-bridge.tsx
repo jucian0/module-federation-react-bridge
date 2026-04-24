@@ -47,6 +47,9 @@ type LoaderArgs = {
   mountPath?: string;
 };
 
+const SOURCE_HREF_ATTRIBUTE = "data-mf-original-href";
+const RESOLVED_HREF_ATTRIBUTE = "data-mf-resolved-href";
+
 export function loadRemoteApp(args: LoaderArgs) {
   if (!window.remotes) {
     window.remotes = {};
@@ -126,15 +129,30 @@ export function loadRemoteApp(args: LoaderArgs) {
             return;
           }
 
+          const originalHref = anchor.getAttribute(SOURCE_HREF_ATTRIBUTE);
+          const previousResolvedHref = anchor.getAttribute(RESOLVED_HREF_ATTRIBUTE);
+          const sourceHref =
+            originalHref && previousResolvedHref === href ? originalHref : href;
+
+          if (sourceHref !== originalHref) {
+            anchor.setAttribute(SOURCE_HREF_ATTRIBUTE, sourceHref);
+          }
+
           const resolvedHref = resolveAnchorPublicHref({
-            href,
+            href: sourceHref,
             origin: window.location.origin,
             browserPathname: window.location.pathname,
             routerPathname: location.pathname,
             mountPath,
           });
 
-          if (resolvedHref && href !== resolvedHref) {
+          if (!resolvedHref) {
+            return;
+          }
+
+          anchor.setAttribute(RESOLVED_HREF_ATTRIBUTE, resolvedHref);
+
+          if (href !== resolvedHref) {
             anchor.setAttribute("href", resolvedHref);
           }
         });
