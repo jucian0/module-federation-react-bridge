@@ -1,3 +1,12 @@
+## [0.0.7](https://github.com/jucian0/module-federation-react-bridge/compare/v0.0.6...v0.0.7) (2026-04-24)
+
+
+### Bug Fixes
+
+* prevent repeated basename injection in links ([dce8deb](https://github.com/jucian0/module-federation-react-bridge/commit/dce8deb386c10761d54129f85cf449deaff7d842))
+
+
+
 ## [0.0.6](https://github.com/jucian0/module-federation-react-bridge/compare/v0.0.5...v0.0.6) (2026-04-24)
 
 

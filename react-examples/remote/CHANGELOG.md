@@ -1,3 +1,7 @@
+## [0.0.7](v0.0.7) (2026-04-24)
+
+**Note:** Version bump only for package synchronization
+
 ## [0.0.6](v0.0.6) (2026-04-24)
 
 **Note:** Version bump only for package synchronization
