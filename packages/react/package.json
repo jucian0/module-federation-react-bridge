@@ -15,7 +15,7 @@
   "author": "Jucian0 <juciano@outlook.com.br>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jucian0/module-federation-bridge"
+    "url": "https://github.com/jucian0/module-federation-react-bridge"
   },
   "devDependencies": {
     "@rslib/core": "0.21.3",
