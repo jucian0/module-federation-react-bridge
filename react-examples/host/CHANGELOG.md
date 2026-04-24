@@ -1,3 +1,7 @@
+## [0.0.5](https://github.com/jucian0/module-federation-react-bridge/compare/v0.0.4...v0.0.5) (2026-04-24)
+
+
+
 ## [0.0.4](https://github.com/jucian0/module-federation-react-bridge/compare/v0.0.3...v0.0.4) (2024-12-01)
 
 
