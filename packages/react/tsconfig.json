@@ -21,5 +21,12 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022"
-  }
+  },
+  "exclude": [
+    "dist",
+    "test",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "rstest.config.ts"
+  ]
 }
